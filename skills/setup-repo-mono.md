@@ -32,7 +32,7 @@ git checkout -b main
   "private": true,
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w @repo-mono/shared && npm run build -w @repo-mono/api",
     "test":  "npm run test  --workspaces",
     "lint":  "npm run lint  --workspaces"
   },
@@ -74,8 +74,19 @@ git checkout -b main
     "declaration": true,
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   }
+}
+```
+
+**`packages/shared/.eslintrc.json`**
+```json
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "env": { "node": true }
 }
 ```
 
@@ -138,6 +149,16 @@ describe("isValidStatus", () => {
     "eslint": "^8.56.0",
     "vitest": "^1.2.0"
   }
+}
+```
+
+**`packages/api/.eslintrc.json`**
+```json
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "env": { "node": true }
 }
 ```
 
