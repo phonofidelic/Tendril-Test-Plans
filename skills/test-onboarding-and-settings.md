@@ -11,10 +11,8 @@ Run Sections 1, 2, and 10 of the Tendril development branch test plan.
 ### Setup
 
 ```bash
-# Clear Tendril state to simulate a fresh install
-rm -rf ~/.tendril/
-# Or use a custom home to avoid touching your real config:
-export TENDRIL_HOME=$(mktemp -d)
+# To simulate a fresh install, use a custom home to avoid touching your real config:
+export TENDRIL_HOME=$(mktemp -d -t tendril-test-home)
 ```
 
 ### 1.1 — Fresh onboarding flow
