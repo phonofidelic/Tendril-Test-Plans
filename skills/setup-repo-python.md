@@ -26,7 +26,7 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 ```toml
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "repo-python"
@@ -46,6 +46,8 @@ dev = [
 
 [tool.ruff]
 line-length = 88
+
+[tool.ruff.lint]
 select = ["E", "F", "I"]
 
 [tool.pytest.ini_options]
@@ -74,7 +76,8 @@ def list_items() -> dict:
 
 ```python
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+
 from src.app import app
 
 
