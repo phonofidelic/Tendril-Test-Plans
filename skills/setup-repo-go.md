@@ -112,18 +112,14 @@ func TestItems(t *testing.T) {
 ### 5 — Write `.golangci.yml`
 
 ```yaml
+version: "2"  # required by golangci-lint v2+
+
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
-    - staticcheck
-    - unused
-
-linters-settings:
-  govet:
-    enable-all: true
+    - staticcheck  # absorbs gosimple and unused in v2
 
 issues:
   max-issues-per-linter: 0
