@@ -1,0 +1,165 @@
+# setup-repo-dotnet
+
+Scaffold a minimal ASP.NET Core Web API repo for use as **repo-dotnet** in Tendril test runs.
+
+This is Tendril's own stack — used for dogfooding. The repo must satisfy all Tendril verification gates:
+- `dotnet build` — exits 0
+- `dotnet test` — at least one passing test
+- `dotnet format --verify-no-changes` — exits 0 (or `dotnet-csharpier --check`)
+
+---
+
+## Steps
+
+### 1 — Scaffold with the .NET CLI
+
+```bash
+mkdir repo-dotnet && cd repo-dotnet
+git init
+git checkout -b main
+
+# Create solution
+dotnet new sln -n RepoApi
+
+# Create Web API project
+dotnet new webapi -n RepoApi.Api --no-openapi -o src/RepoApi.Api
+dotnet sln add src/RepoApi.Api/RepoApi.Api.csproj
+
+# Create test project
+dotnet new xunit -n RepoApi.Tests -o tests/RepoApi.Tests
+dotnet sln add tests/RepoApi.Tests/RepoApi.Tests.csproj
+dotnet add tests/RepoApi.Tests/RepoApi.Tests.csproj reference src/RepoApi.Api/RepoApi.Api.csproj
+```
+
+### 2 — Replace `src/RepoApi.Api/Program.cs`
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+app.MapGet("/items", () => Results.Ok(new { items = Array.Empty<object>() }));
+
+app.Run();
+
+// Required for integration test WebApplicationFactory
+public partial class Program { }
+```
+
+### 3 — Add integration test packages
+
+```bash
+cd tests/RepoApi.Tests
+dotnet add package Microsoft.AspNetCore.Mvc.Testing
+dotnet add package FluentAssertions
+cd ../..
+```
+
+### 4 — Write `tests/RepoApi.Tests/HealthTests.cs`
+
+```csharp
+using System.Net;
+using System.Text.Json;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace RepoApi.Tests;
+
+public class HealthTests(WebApplicationFactory<Program> factory)
+    : IClassFixture<WebApplicationFactory<Program>>
+{
+    private readonly HttpClient _client = factory.CreateClient();
+
+    [Fact]
+    public async Task GetHealth_ReturnsOk()
+    {
+        var response = await _client.GetAsync("/health");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("status").GetString().Should().Be("ok");
+    }
+
+    [Fact]
+    public async Task GetItems_ReturnsOkWithEmptyArray()
+    {
+        var response = await _client.GetAsync("/items");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        doc.RootElement.GetProperty("items").GetArrayLength().Should().Be(0);
+    }
+}
+```
+
+### 5 — Add `.editorconfig` for `dotnet format`
+
+```ini
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+dotnet_sort_system_directives_first = true
+```
+
+### 6 — Write `.gitignore`
+
+```
+bin/
+obj/
+*.user
+.vs/
+.idea/
+```
+
+### 7 — Build and verify
+
+```bash
+dotnet build                          # must exit 0
+dotnet test                           # must show 2 passing, 0 failing
+dotnet format --verify-no-changes     # must exit 0
+```
+
+### 8 — Initial commit
+
+```bash
+git add -A
+git commit -m "chore: initial repo-dotnet scaffold"
+```
+
+### 9 — Push to GitHub
+
+```bash
+gh repo create repo-dotnet --private --source=. --remote=origin --push
+```
+
+---
+
+## Tendril verification config for this repo
+
+In Settings → Verifications, configure:
+
+| Gate | Command | Required |
+|---|---|---|
+| Build | `dotnet build` | ✅ |
+| Test | `dotnet test` | ✅ |
+| Lint | `dotnet format --verify-no-changes` | ❌ |
+
+---
+
+## Validation checklist
+
+- [ ] `dotnet build` exits 0
+- [ ] `dotnet test` shows 2 passing, 0 failing
+- [ ] `dotnet format --verify-no-changes` exits 0
+- [ ] `git log --oneline` shows initial commit on `main`
+- [ ] Repo accessible to Tendril's GitHub account
