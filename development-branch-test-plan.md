@@ -18,6 +18,7 @@ Create or fork one repo per stack to cover the most common project types. Keep t
 | **repo-go** | A minimal Go HTTP server | Go | Compiled, no package manager friction |
 | **repo-react** | A Vite + React frontend | React/TS | Frontend-only changes |
 | **repo-mono** | A simple monorepo (two packages) | Mixed | Multi-repo plan testing |
+| **repo-dotnet** | A minimal ASP.NET Core Web API | .NET/C# | Tendril's own stack; dogfooding |
 
 Each repo should have:
 - A working CI/build command (e.g., `npm run build`, `go build ./...`)
