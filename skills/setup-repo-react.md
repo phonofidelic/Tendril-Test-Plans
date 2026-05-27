@@ -18,6 +18,7 @@ npm create vite@latest repo-react -- --template react-ts
 cd repo-react
 git init
 git checkout -b main
+npm install
 ```
 
 ### 2 — Install additional dev dependencies
@@ -28,8 +29,11 @@ npm install -D vitest @vitest/ui @testing-library/react @testing-library/jest-do
 
 ### 3 — Update `vite.config.ts`
 
+Use `vitest/config` as the import source (not `vite`) — this carries the
+`test` property type without needing a triple-slash reference:
+
 ```ts
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
@@ -42,31 +46,48 @@ export default defineConfig({
 });
 ```
 
-### 4 — Write `src/test-setup.ts`
+### 4 — Update `tsconfig.node.json` types
+
+The Vite template puts `vite.config.ts` under `tsconfig.node.json`.
+Add `"vitest/node"` so TypeScript resolves the test config types:
+
+```json
+"types": ["node", "vitest/node"],
+```
+
+Also add `"vitest/globals"` to `tsconfig.app.json` types:
+
+```json
+"types": ["vite/client", "vitest/globals"],
+```
+
+### 5 — Write `src/test-setup.ts`
 
 ```ts
 import "@testing-library/jest-dom";
 ```
 
-### 5 — Update `package.json` scripts
+### 6 — Update `package.json` scripts
 
-Add/update the `test` and `lint` scripts:
+The Vite template generates `build: "tsc -b && vite build"` and
+`lint: "eslint ."` (ESLint v9+ flat config — no `--ext` flag needed).
+Only the `test` script needs adding:
 
 ```json
 {
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview"
   }
 }
 ```
 
-### 6 — Write `src/components/StatusBadge.tsx`
+### 8 — Write `src/components/StatusBadge.tsx`
 
-A simple component to give the agent something meaningful to modify:
+Create the `src/components/` directory first. A simple component to give the agent something meaningful to modify:
 
 ```tsx
 interface Props {
@@ -87,7 +108,7 @@ export function StatusBadge({ status }: Props) {
 }
 ```
 
-### 7 — Write `src/components/StatusBadge.test.tsx`
+### 9 — Write `src/components/StatusBadge.test.tsx`
 
 ```tsx
 import { render, screen } from "@testing-library/react";
@@ -111,7 +132,7 @@ describe("StatusBadge", () => {
 });
 ```
 
-### 8 — Verify
+### 10 — Verify
 
 ```bash
 npm run build    # must exit 0
@@ -119,14 +140,14 @@ npm test         # must show 3 passing, 0 failing
 npm run lint     # must exit 0
 ```
 
-### 9 — Initial commit
+### 11 — Initial commit
 
 ```bash
 git add -A
 git commit -m "chore: initial repo-react scaffold"
 ```
 
-### 10 — Push to GitHub
+### 12 — Push to GitHub
 
 ```bash
 gh repo create repo-react --private --source=. --remote=origin --push
