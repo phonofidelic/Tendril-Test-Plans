@@ -1,3 +1,12 @@
+---
+name: test-review-and-pr
+description: >
+  Run Section 6 (Review & PR Creation) and Section 8 (Dashboard & Statistics) of the Tendril development branch test plan.
+  Use when testing the review flow, PR creation rules (default, yolo, multi-repo, draft), and dashboard accuracy.
+allowed-tools: Bash Read
+effort: medium
+---
+
 # test-review-and-pr
 
 Run Section 6 (Review & PR Creation) and Section 8 (Dashboard & Statistics) of the Tendril development branch test plan.

@@ -1,3 +1,12 @@
+---
+name: setup-repo-go
+description: >
+  Scaffold a minimal Go HTTP server repo for use as repo-go in Tendril test runs.
+  Use when preparing the cross-agent parity target repo (Section 5D) or the minimum required exit-criteria repo.
+allowed-tools: Bash Read Write Edit
+effort: high
+---
+
 # setup-repo-go
 
 Scaffold a minimal Go HTTP server repo for use as **repo-go** in Tendril test runs.

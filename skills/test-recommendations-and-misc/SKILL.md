@@ -1,3 +1,12 @@
+---
+name: test-recommendations-and-misc
+description: >
+  Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground) of the Tendril development branch test plan.
+  Use when testing AI-generated recommendations, raw config editing, and the AgentApp live session.
+allowed-tools: Bash Read
+effort: medium
+---
+
 # test-recommendations-and-misc
 
 Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground) of the Tendril development branch test plan.

@@ -1,3 +1,12 @@
+---
+name: test-onboarding-and-settings
+description: >
+  Run Sections 1, 2, and 10 of the Tendril development branch test plan.
+  Use when testing first-run onboarding, coding agent settings, projects, verifications, tunnel, and regression checks.
+allowed-tools: Bash Read
+effort: medium
+---
+
 # test-onboarding-and-settings
 
 Run Sections 1, 2, and 10 of the Tendril development branch test plan.

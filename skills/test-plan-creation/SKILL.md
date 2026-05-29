@@ -1,3 +1,12 @@
+---
+name: test-plan-creation
+description: >
+  Run Section 3 (Plan Creation) of the Tendril development branch test plan.
+  Use when testing plan creation, duplicate detection, project inference, and multi-repo descriptions.
+allowed-tools: Bash Read
+effort: medium
+---
+
 # test-plan-creation
 
 Run Section 3 (Plan Creation) of the Tendril development branch test plan.

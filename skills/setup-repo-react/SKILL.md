@@ -1,3 +1,12 @@
+---
+name: setup-repo-react
+description: >
+  Scaffold a minimal Vite + React (TypeScript) frontend repo for use as repo-react in Tendril test runs.
+  Use when preparing the frontend repo for multi-repo plan testing (Section 3B.2, 6B.5).
+allowed-tools: Bash Read Write Edit
+effort: high
+---
+
 # setup-repo-react
 
 Scaffold a minimal Vite + React (TypeScript) frontend repo for use as **repo-react** in Tendril test runs.
