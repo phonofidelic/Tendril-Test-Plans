@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# uv
+.uv/
+
+# Generated artifacts
+cua-agent-app/screenshots/*
+!cua-agent-app/screenshots/.gitkeep
+
+# Editor / OS
+.vscode/
+.DS_Store
