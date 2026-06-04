@@ -113,9 +113,3 @@ Requires Python `>=3.12,<3.14` and a running Lume VM. See `cua-agent-app/main.py
 - **No binary here.** The Tendril app must be built separately from the `development` branch. This repo contains only test runbooks.
 - **Skills live in `skills/<name>/SKILL.md`**, not `.claude/skills/`. They are not auto-loaded — invoke them explicitly.
 - **`repo-node` is a hard dependency** for ~60% of `test-plan-execution`. Don't skip `setup-repo-node`.
-
----
-
-## License
-
-MIT
