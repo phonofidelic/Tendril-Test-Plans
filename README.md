@@ -16,7 +16,9 @@ It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skil
 | `skills/` | Agent-runnable test skills. One folder per skill, each with a `SKILL.md` runbook. See [`skills/README.md`](skills/README.md). |
 | `.claude/skills/run-tendril-test-plans/` | Orchestrator skill + `smoke.sh` validator that checks every skill is present and well-formed. |
 | `.claude-plugin/plugin.json` | Claude Code plugin manifest. |
-| `cua-agent-app/` | Computer Use Agent helper (Python + [`cua`](https://pypi.org/project/cua/)) for screenshotting a local macOS Lume VM. |
+| `cua-agent-app/` | Agent-agnostic CUA CLI (screenshot, click, type, …) for the `tendril-mac` Lume VM. |
+| `.cursor/skills/install-tendril-in-mac-vm/` | Runbook to install Tendril on the VM via GUI (any Cursor agent). Run before test-plan skills on a fresh VM. |
+| `.cursor/skills/connect-cua-lume-macos-vm/` | Connect CUA to the Lume VM and provision `computer-server`. |
 
 ---
 
@@ -94,17 +96,18 @@ The test skills run against a running Tendril binary built separately (typically
 
 ---
 
-## cua-agent-app
+## cua-agent-app and VM install
 
-A small helper that connects to a local macOS [Lume](https://github.com/trycua/cua) VM (named `tendril-mac`) to capture screenshots — useful for visually verifying the Tendril UI during a test run.
+**Fresh VM (no Tendril):** run the [install-tendril-in-mac-vm](.cursor/skills/install-tendril-in-mac-vm/SKILL.md) skill first. It cold-starts the VM, ensures CUA connectivity ([connect-cua-lume-macos-vm](.cursor/skills/connect-cua-lume-macos-vm/SKILL.md)), and installs Tendril GUI-first with a Terminal fallback. Any Cursor agent can execute it — no nested LLM or API keys in `cua-agent-app`.
 
 ```bash
 cd cua-agent-app
 uv sync
-uv run main.py   # saves screenshots/test-screenshot.png
+uv run main.py screenshot --out screenshots/00-ready.png
+uv run main.py click --x 420 --y 310   # example primitive
 ```
 
-Requires Python `>=3.12,<3.14` and a running Lume VM. See `cua-agent-app/main.py`.
+Requires Python `>=3.12,<3.14`, a running Lume VM, and `computer-server` in the VM. See [`cua-agent-app/README.md`](cua-agent-app/README.md).
 
 ---
 

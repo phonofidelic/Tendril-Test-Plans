@@ -1,59 +1,83 @@
 # cua-agent-app
 
-A minimal [Computer Use Agent (CUA)](https://github.com/trycua/cua) example that connects to a local macOS virtual machine, captures a screenshot, and saves it to disk.
+A thin CLI over the [`cua`](https://pypi.org/project/cua/) Sandbox SDK for controlling the `tendril-mac` Lume VM. Any Cursor agent uses these commands as **eyes and hands** while following the [install-tendril-in-mac-vm](../.cursor/skills/install-tendril-in-mac-vm/SKILL.md) skill runbook.
 
-It uses the [`cua`](https://pypi.org/project/cua/) Python SDK with the **Lume** runtime to reuse an already-running local Lume VM (no clone or pull) instead of provisioning a new sandbox.
+Each subcommand connects to the VM and calls a single cua SDK method — `sb.screenshot()`, `sb.mouse.*`, `sb.keyboard.*`, or `sb.get_dimensions()`. The app defines **no input or coordinate primitives of its own**; the SDK owns those. See the [cua docs](https://cua.ai/docs/cua/guide/get-started/what-is-cua).
+
+Uses the **Lume** runtime to attach to an already-running local VM (no clone or pull).
 
 ## Requirements
 
-- macOS (Apple Silicon) with [Lume](https://github.com/trycua/cua) installed and running
-- A running Lume VM named `tendril-mac`
+- macOS (Apple Silicon) with [Lume](https://github.com/trycua/cua) installed
+- A Lume VM named `tendril-mac` (started via `lume run tendril-mac`)
+- `computer-server` running in the VM on port 8443 — see [connect-cua-lume-macos-vm](../.cursor/skills/connect-cua-lume-macos-vm/SKILL.md)
 - Python `>=3.12,<3.14`
 - [`uv`](https://docs.astral.sh/uv/) for dependency management
+- Repo-root [`.env`](../.env) with `LUME_VM_NAME` (and related vars)
+
+No LLM API keys required — the invoking Cursor agent drives the install loop.
 
 ## Setup
-
-Install dependencies into a virtual environment:
 
 ```bash
 uv sync
 ```
 
-Make sure the target Lume VM is running before you start the app. The name passed to `Sandbox.create(...)` must match the existing VM:
+Start the VM and confirm CUA connectivity before using the CLI:
 
 ```bash
-lume ls
-lume run tendril-mac
+set -a && source ../.env && set +a
+lume run "${LUME_VM_NAME:-tendril-mac}"
+cd cua-agent-app && uv run main.py screenshot --out screenshots/00-ready.png
 ```
 
-## Usage
+## CLI commands
 
-Run the app:
+Each command connects to the VM, performs one action, and disconnects (VM stays running).
+
+| Command | SDK call | Example |
+|---|---|---|
+| `dimensions` | `sb.get_dimensions()` | `uv run main.py dimensions` |
+| `screenshot` | `sb.screenshot()` | `uv run main.py screenshot --out screenshots/01.png` |
+| `click` | `sb.mouse.click` | `uv run main.py click --x 420 --y 310` |
+| `double-click` | `sb.mouse.double_click` | `uv run main.py double-click --x 100 --y 200` |
+| `right-click` | `sb.mouse.right_click` | `uv run main.py right-click --x 100 --y 200` |
+| `move` | `sb.mouse.move` | `uv run main.py move --x 100 --y 200` |
+| `drag` | `sb.mouse.drag` | `uv run main.py drag --x1 10 --y1 10 --x2 80 --y2 80` |
+| `scroll` | `sb.mouse.scroll` | `uv run main.py scroll --x 500 --y 400 --dy -5` |
+| `type` | `sb.keyboard.type` | `uv run main.py type --text "https://..."` |
+| `keypress` | `sb.keyboard.keypress` | `uv run main.py keypress --keys cmd,space` |
+
+Coordinates use the SDK screen space from `dimensions`. On Retina VMs the saved screenshot PNG may differ in pixel size from that screen space; if so, scale a point measured on the PNG by `screen / png` before clicking.
 
 ```bash
-uv run main.py
+uv run main.py --help
 ```
 
-On success it writes a screenshot of the VM's current screen to `screenshots/test-screenshot.png` and prints:
+## Agent workflow
 
-```
-Screenshot saved to screenshots/test-screenshot.png
-```
+The install runbook lives in the skill, not in this app:
 
-## How it works
+1. `screenshot` → agent interprets the image
+2. `click` / `type` / `keypress` → next human-like action
+3. Repeat until Tendril's native macOS app is visible
 
-`main.py` does the following:
-
-1. Connects to the existing local Lume VM via `Sandbox.create(Image.macos(), name="tendril-mac", local=True)`. `Image.macos()` only selects the Lume runtime, so the running VM is reused rather than re-provisioned.
-2. Captures a screenshot with `sb.screenshot()` and writes the bytes to `screenshots/test-screenshot.png`.
-3. Calls `sb.disconnect()`, which leaves the VM running.
+See [`.cursor/skills/install-tendril-in-mac-vm/SKILL.md`](../.cursor/skills/install-tendril-in-mac-vm/SKILL.md) for the full cold-start → GUI install → fallback procedure.
 
 ## Project structure
 
 ```
 cua-agent-app/
-├── main.py              # Entry point: connects to the VM and takes a screenshot
-├── pyproject.toml       # Project metadata and dependencies
-├── uv.lock              # Locked dependency versions
-└── screenshots/         # Output directory for captured screenshots
+├── main.py              # Thin SDK CLI: dimensions, screenshot, mouse + keyboard
+├── vm.py                # Sandbox connect/disconnect + .env loading
+├── pyproject.toml
+├── uv.lock
+└── screenshots/         # Step evidence (gitignored outputs except .gitkeep)
 ```
+
+## How it works
+
+1. `vm.py` loads `LUME_VM_NAME` from the repo-root `.env`.
+2. `Sandbox.create(Image.macos(), name=..., local=True)` attaches to the running Lume VM.
+3. Each subcommand calls one cua SDK method — `sb.screenshot()`, `sb.mouse.*`, `sb.keyboard.*`, or `sb.get_dimensions()` — and nothing else.
+4. `sb.disconnect()` leaves the VM running.
