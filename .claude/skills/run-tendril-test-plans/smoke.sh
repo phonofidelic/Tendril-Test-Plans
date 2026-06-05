@@ -41,10 +41,10 @@ echo ""
 
 # 1. Test plan document exists
 echo "── Core documents"
-if [ -f "$REPO_ROOT/development-branch-test-plan.md" ]; then
-  check "development-branch-test-plan.md" "ok"
+if [ -f "$REPO_ROOT/tendril-test-plan.md" ]; then
+  check "tendril-test-plan.md" "ok"
 else
-  check "development-branch-test-plan.md" "missing"
+  check "tendril-test-plan.md" "missing"
 fi
 if [ -f "$SKILLS_DIR/README.md" ]; then
   check "skills/README.md" "ok"

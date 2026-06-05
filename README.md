@@ -12,7 +12,7 @@ It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skil
 
 | Path | Purpose |
 |---|---|
-| `development-branch-test-plan.md` | The source-of-truth manual test plan (sections 1–12, test matrix, exit criteria). Primarily used for **production builds across multiple versions**. |
+| `tendril-test-plan.md` | The source-of-truth manual test plan (sections 1–12, test matrix, exit criteria). Primarily used for **production builds across multiple versions**. |
 | `skills/` | Agent-runnable test skills. One folder per skill, each with a `SKILL.md` runbook. See [`skills/README.md`](skills/README.md). |
 | `.claude/skills/run-tendril-test-plans/` | Orchestrator skill + `smoke.sh` validator that checks every skill is present and well-formed. |
 | `.claude-plugin/plugin.json` | Claude Code plugin manifest. |

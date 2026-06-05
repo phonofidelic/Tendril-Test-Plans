@@ -27,7 +27,7 @@ Expected output (all 19 checks passing):
 === Tendril Test Plan — Skill Smoke Check ===
 
 ── Core documents
-  ✓ development-branch-test-plan.md
+  ✓ tendril-test-plan.md
   ✓ skills/README.md
 
 ── Skill directories

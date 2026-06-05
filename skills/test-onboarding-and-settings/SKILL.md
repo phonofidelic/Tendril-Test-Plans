@@ -181,7 +181,7 @@ Run these in sequence after Sections 1–2. Each maps to a known regression.
 
 ## Defect logging
 
-For any failure, add a row to the Defect Log in `development-branch-test-plan.md`:
+For any failure, add a row to the Defect Log in `tendril-test-plan.md`:
 
 ```
 | <N> | Section X | <ID> | <Agent> | <Repo> | <Description> | P1–P4 | <path/to/screenshot> |
