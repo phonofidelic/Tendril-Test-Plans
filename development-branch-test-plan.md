@@ -1,6 +1,9 @@
-# Tendril Development Branch - Manual Test Plan
+# Tendril Production Build - Manual Test Plan
 
-**Branch:** `development`
+**Primary target:** Tendril **production build** (test across multiple released versions)
+**Secondary target:** `development` branch builds (when validating pre-release changes)
+**Production version(s):**
+**Branch (if applicable):**
 **Date:** 2026-05-27
 **Tester:**
 **Agent Under Test:**

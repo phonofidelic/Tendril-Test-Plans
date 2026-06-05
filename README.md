@@ -1,6 +1,6 @@
 # Tendril Test Plans
 
-Agent skills and runbooks for executing the [Tendril](https://github.com/phonofidelic) desktop application's **`development` branch manual test plan** — repo scaffolding, onboarding, plan creation, execution, review, and recommendations.
+Agent skills and runbooks for executing the [Tendril](https://github.com/Ivy-Interactive/Ivy-Tendril) desktop application's **production build manual test plan** (across multiple released versions) — repo scaffolding, onboarding, plan creation, execution, review, and recommendations.
 
 This repo is a pure documentation/skills project. There is **no server, build step, or compiled output**. The "app" is a set of agent-runnable test skills that drive a separately-built Tendril binary, plus a small Computer Use Agent helper for screenshotting a macOS VM.
 
@@ -12,7 +12,7 @@ It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skil
 
 | Path | Purpose |
 |---|---|
-| `development-branch-test-plan.md` | The source-of-truth manual test plan (sections 1–12, test matrix, exit criteria). |
+| `development-branch-test-plan.md` | The source-of-truth manual test plan (sections 1–12, test matrix, exit criteria). Primarily used for **production builds across multiple versions**. |
 | `skills/` | Agent-runnable test skills. One folder per skill, each with a `SKILL.md` runbook. See [`skills/README.md`](skills/README.md). |
 | `.claude/skills/run-tendril-test-plans/` | Orchestrator skill + `smoke.sh` validator that checks every skill is present and well-formed. |
 | `.claude-plugin/plugin.json` | Claude Code plugin manifest. |
@@ -67,7 +67,7 @@ This keeps test state out of `~/.tendril/` so each run starts clean (otherwise o
 
 ### 3. Run the plan
 
-The test skills run against a running Tendril binary built separately from the `development` branch — there is nothing to launch from this repo. Execute the skills in order:
+The test skills run against a running Tendril binary built separately (typically a **production build**; optionally a `development` branch build when validating unreleased changes). There is nothing to launch from this repo. Execute the skills in order:
 
 ```
 1. Set up repos (in parallel)
@@ -110,6 +110,6 @@ Requires Python `>=3.12,<3.14` and a running Lume VM. See `cua-agent-app/main.py
 
 ## Gotchas
 
-- **No binary here.** The Tendril app must be built separately from the `development` branch. This repo contains only test runbooks.
+- **No binary here.** The Tendril app must be built separately (typically a **production build**, potentially multiple released versions). This repo contains only test runbooks.
 - **Skills live in `skills/<name>/SKILL.md`**, not `.claude/skills/`. They are not auto-loaded — invoke them explicitly.
 - **`repo-node` is a hard dependency** for ~60% of `test-plan-execution`. Don't skip `setup-repo-node`.

@@ -92,7 +92,7 @@ This keeps test state out of `~/.tendril/` so runs are isolated.
 
 ## Gotchas
 
-- **No binary here.** The Tendril app must be built separately from the `development` branch. This repo contains only test runbooks.
+- **No binary here.** The Tendril app must be built separately (typically a **production build**, potentially multiple released versions). This repo contains only test runbooks.
 - **TENDRIL_HOME isolation.** Without it, a prior test run's config will cause onboarding to be skipped in Section 1.
 - **Minimum repos.** Many test cases in `test-plan-execution` hard-require repo-node to be registered in Tendril first. Skipping setup-repo-node will block you from ~60% of the plan.
 - **Skills are in `skills/<name>/SKILL.md`, not `.claude/skills/`.** The test skills live under `skills/` (sibling to this skill), not inside `.claude/`. They are not auto-loaded — invoke them explicitly with `/setup-repo-node`, `/test-plan-execution`, etc.
