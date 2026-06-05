@@ -4,7 +4,9 @@ description: >
   Run Sections 4, 5, and 7 of the Tendril development branch test plan.
   Use when testing plan lifecycle management, core execution, verification gates, timeout/error handling, cross-agent parity, and jobs dashboard.
 allowed-tools: Bash Read
-effort: medium
+license: MIT
+metadata:
+  effort: medium
 ---
 
 # test-plan-execution

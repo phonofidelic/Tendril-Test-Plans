@@ -4,7 +4,9 @@ description: >
   Scaffold a minimal Express/Node.js REST API repo for use as repo-node in Tendril test runs.
   Use when preparing the primary test repo for Tendril verification gates (build, test, lint).
 allowed-tools: Bash Read Write Edit
-effort: high
+license: MIT
+metadata:
+  effort: high
 ---
 
 # setup-repo-node

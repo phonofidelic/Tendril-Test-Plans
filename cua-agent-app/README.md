@@ -1,6 +1,6 @@
 # cua-agent-app
 
-A thin CLI over the [`cua`](https://pypi.org/project/cua/) Sandbox SDK for controlling the `tendril-mac` Lume VM. Any Cursor agent uses these commands as **eyes and hands** while following the [install-tendril-in-mac-vm](../.cursor/skills/install-tendril-in-mac-vm/SKILL.md) skill runbook.
+A thin CLI over the [`cua`](https://pypi.org/project/cua/) Sandbox SDK for controlling the `tendril-mac` Lume VM. Any Cursor agent uses these commands as **eyes and hands** while following the [install-tendril-in-mac-vm](../skills/install-tendril-in-mac-vm/SKILL.md) skill runbook.
 
 Each subcommand connects to the VM and calls a single cua SDK method — `sb.screenshot()`, `sb.mouse.*`, `sb.keyboard.*`, or `sb.get_dimensions()`. The app defines **no input or coordinate primitives of its own**; the SDK owns those. See the [cua docs](https://cua.ai/docs/cua/guide/get-started/what-is-cua).
 
@@ -10,7 +10,7 @@ Uses the **Lume** runtime to attach to an already-running local VM (no clone or 
 
 - macOS (Apple Silicon) with [Lume](https://github.com/trycua/cua) installed
 - A Lume VM named `tendril-mac` (started via `lume run tendril-mac`)
-- `computer-server` running in the VM on port 8443 — see [connect-cua-lume-macos-vm](../.cursor/skills/connect-cua-lume-macos-vm/SKILL.md)
+- `computer-server` running in the VM on port 8443 — see [connect-cua-lume-macos-vm](../skills/connect-cua-lume-macos-vm/SKILL.md)
 - Python `>=3.12,<3.14`
 - [`uv`](https://docs.astral.sh/uv/) for dependency management
 - Repo-root [`.env`](../.env) with `LUME_VM_NAME` (and related vars)
@@ -62,7 +62,7 @@ The install runbook lives in the skill, not in this app:
 2. `click` / `type` / `keypress` → next human-like action
 3. Repeat until Tendril's native macOS app is visible
 
-See [`.cursor/skills/install-tendril-in-mac-vm/SKILL.md`](../.cursor/skills/install-tendril-in-mac-vm/SKILL.md) for the full cold-start → GUI install → fallback procedure.
+See [`skills/install-tendril-in-mac-vm/SKILL.md`](../skills/install-tendril-in-mac-vm/SKILL.md) for the full cold-start → GUI install → fallback procedure.
 
 ## Project structure
 

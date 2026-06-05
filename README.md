@@ -4,7 +4,7 @@ Agent skills and runbooks for executing the [Tendril](https://github.com/Ivy-Int
 
 This repo is a pure documentation/skills project. There is **no server, build step, or compiled output**. The "app" is a set of agent-runnable test skills that drive a separately-built Tendril binary, plus a small Computer Use Agent helper for screenshotting a macOS VM.
 
-It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skills can be invoked directly (`/setup-repo-node`, `/test-plan-execution`, etc.).
+All skills follow the [agentskills.io open specification](https://agentskills.io/specification): one directory per skill under `skills/`, each with a `SKILL.md`. The repo is also packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skills can be invoked directly (`/setup-repo-node`, `/test-plan-execution`, etc.).
 
 ---
 
@@ -13,12 +13,11 @@ It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skil
 | Path | Purpose |
 |---|---|
 | `tendril-test-plan.md` | The source-of-truth manual test plan (sections 1–12, test matrix, exit criteria). Primarily used for **production builds across multiple versions**. |
-| `skills/` | Agent-runnable test skills. One folder per skill, each with a `SKILL.md` runbook. See [`skills/README.md`](skills/README.md). |
-| `.claude/skills/run-tendril-test-plans/` | Orchestrator skill + `smoke.sh` validator that checks every skill is present and well-formed. |
-| `.claude-plugin/plugin.json` | Claude Code plugin manifest. |
+| `skills/` | The single canonical skills tree. One folder per skill, each with a spec-compliant `SKILL.md`. Includes the test, infrastructure, and orchestration skills below. See [`skills/README.md`](skills/README.md). |
+| `.agents/skills` → `skills/` | Symlink for cross-client skill discovery ([agentskills.io convention](https://agentskills.io/client-implementation/adding-skills-support)). |
+| `.cursor/skills` → `skills/` | Symlink so Cursor discovers the same tree. |
+| `.claude-plugin/plugin.json` | Claude Code plugin manifest (`"skills": "./skills/"`). |
 | `cua-agent-app/` | Agent-agnostic CUA CLI (screenshot, click, type, …) for the `tendril-mac` Lume VM. |
-| `.cursor/skills/install-tendril-in-mac-vm/` | Runbook to install Tendril on the VM via GUI (any Cursor agent). Run before test-plan skills on a fresh VM. |
-| `.cursor/skills/connect-cua-lume-macos-vm/` | Connect CUA to the Lume VM and provision `computer-server`. |
 
 ---
 
@@ -47,6 +46,19 @@ It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skil
 | `test-review-and-pr` | 6, 8 |
 | `test-recommendations-and-misc` | 9, 11, 12 |
 
+### Infrastructure skills
+
+| Skill | Purpose |
+|---|---|
+| `install-tendril-in-mac-vm` | Install Tendril on the `tendril-mac` Lume VM (GUI first, Terminal fallback). Run before test-plan skills on a fresh VM. |
+| `connect-cua-lume-macos-vm` | Connect CUA to the Lume VM and provision the in-VM `computer-server`. |
+
+### Orchestration skill
+
+| Skill | Purpose |
+|---|---|
+| `run-tendril-test-plans` | Validate that every skill is present and spec-compliant, then drive the end-to-end test plan. Bundles `scripts/smoke.sh`. |
+
 ---
 
 ## Getting started
@@ -54,7 +66,7 @@ It is packaged as a [Claude Code plugin](.claude-plugin/plugin.json) so the skil
 ### 1. Validate the skills are intact
 
 ```bash
-bash .claude/skills/run-tendril-test-plans/smoke.sh
+bash skills/run-tendril-test-plans/scripts/smoke.sh
 ```
 
 Exit `0` means all skills are present and correctly structured.
@@ -98,7 +110,7 @@ The test skills run against a running Tendril binary built separately (typically
 
 ## cua-agent-app and VM install
 
-**Fresh VM (no Tendril):** run the [install-tendril-in-mac-vm](.cursor/skills/install-tendril-in-mac-vm/SKILL.md) skill first. It cold-starts the VM, ensures CUA connectivity ([connect-cua-lume-macos-vm](.cursor/skills/connect-cua-lume-macos-vm/SKILL.md)), and installs Tendril GUI-first with a Terminal fallback. Any Cursor agent can execute it — no nested LLM or API keys in `cua-agent-app`.
+**Fresh VM (no Tendril):** run the [install-tendril-in-mac-vm](skills/install-tendril-in-mac-vm/SKILL.md) skill first. It cold-starts the VM, ensures CUA connectivity ([connect-cua-lume-macos-vm](skills/connect-cua-lume-macos-vm/SKILL.md)), and installs Tendril GUI-first with a Terminal fallback. Any Cursor agent can execute it — no nested LLM or API keys in `cua-agent-app`.
 
 ```bash
 cd cua-agent-app
@@ -114,5 +126,6 @@ Requires Python `>=3.12,<3.14`, a running Lume VM, and `computer-server` in the 
 ## Gotchas
 
 - **No binary here.** The Tendril app must be built separately (typically a **production build**, potentially multiple released versions). This repo contains only test runbooks.
-- **Skills live in `skills/<name>/SKILL.md`**, not `.claude/skills/`. They are not auto-loaded — invoke them explicitly.
+- **All skills live in `skills/<name>/SKILL.md`** — a single canonical, spec-compliant tree. `.agents/skills` and `.cursor/skills` are symlinks to it; Claude Code loads it via the plugin manifest. Invoke skills explicitly.
+- **Symlinks on Windows.** The `.agents/skills` and `.cursor/skills` entries are git symlinks. Windows clones may need `git config core.symlinks true` or WSL; this project is macOS-focused.
 - **`repo-node` is a hard dependency** for ~60% of `test-plan-execution`. Don't skip `setup-repo-node`.

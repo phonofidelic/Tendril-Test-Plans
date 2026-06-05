@@ -7,6 +7,10 @@ description: >-
   Sandbox.create/connect fails with "No local sandbox named ... found" or a
   computer-server "not ready" timeout, or when screenshots fail with
   "could not create image from display".
+license: MIT
+compatibility: >-
+  Requires a macOS host with Lume, uv, and the cua-agent-app CLI, plus network
+  access to the VM's in-VM computer-server on port 8443.
 ---
 
 # Connect a cua Sandbox to an existing Lume macOS VM
@@ -74,7 +78,7 @@ SSH into the VM first (see step 5), then either paste the script or pipe it:
 ```bash
 # from the host; user/IP from `lume ls` and VM Sharing > Remote Login
 ssh "${LUME_VM_SSH_USER}@${LUME_VM_IP}" 'bash -s' \
-  < .cursor/skills/connect-cua-lume-macos-vm/scripts/provision-computer-server.sh
+  < scripts/provision-computer-server.sh
 ```
 
 ## 4. Screenshots fail: "could not create image from display" (Screen Recording / TCC)

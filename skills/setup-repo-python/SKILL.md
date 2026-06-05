@@ -4,7 +4,9 @@ description: >
   Scaffold a minimal FastAPI app repo for use as repo-python in Tendril test runs.
   Use when preparing the Python test repo for project inference and per-project stats testing.
 allowed-tools: Bash Read Write Edit
-effort: high
+license: MIT
+metadata:
+  effort: high
 ---
 
 # setup-repo-python

@@ -5,11 +5,15 @@ description: >-
   human would (GUI .pkg first, Terminal script fallback). Use when the VM is
   stopped or has no Tendril, before running test-plan skills, or when setting
   up a fresh VM for CUA-driven testing. Works with any Cursor agent.
+license: MIT
+compatibility: >-
+  Requires a macOS host with Lume, uv, and the cua-agent-app CLI, a running
+  tendril-mac VM, and an in-VM computer-server on port 8443.
 ---
 
 # Install Tendril on the Lume VM (agent-agnostic)
 
-The **invoking agent** is the computer-use brain. [`cua-agent-app`](../../../cua-agent-app/) provides eyes and hands via CLI primitives. No nested LLM, no provider API keys, no Ivy-Tendril source reading.
+The **invoking agent** is the computer-use brain. [`cua-agent-app`](../../cua-agent-app/) provides eyes and hands via CLI primitives. No nested LLM, no provider API keys, no Ivy-Tendril source reading.
 
 ## Agent contract
 
@@ -45,7 +49,7 @@ The CLI is a thin pass-through to the cua Sandbox SDK ([docs](https://cua.ai/doc
 ## 0. Prerequisites (host)
 
 - macOS host with [Lume](https://github.com/trycua/cua) and [`uv`](https://docs.astral.sh/uv/)
-- [`.env`](../../../.env) populated from [`.env.example`](../../../.env.example) (`LUME_VM_*` only)
+- [`.env`](../../.env) populated from [`.env.example`](../../.env.example) (`LUME_VM_*` only)
 - Dependencies installed:
 
 ```bash
