@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "tendril-test-plans",
+  "version": "1.0.0",
+  "description": "Agent skills for the Tendril development-branch manual test plan — repo scaffolding, onboarding, plan creation, execution, review, and recommendations.",
+  "owner": {
+    "name": "Phonofidelic"
+  },
+  "plugins": [
+    {
+      "name": "tendril-test-plans",
+      "description": "Agent skills for the Tendril development-branch manual test plan — repo scaffolding, onboarding, plan creation, execution, review, and recommendations.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Phonofidelic"
+      },
+      "source": "./",
+      "category": "testing"
+    }
+  ]
+}
