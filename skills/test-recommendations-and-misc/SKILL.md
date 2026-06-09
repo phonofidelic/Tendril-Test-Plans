@@ -1,8 +1,10 @@
 ---
 name: test-recommendations-and-misc
 description: >
-  Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground) of the Tendril development branch test plan.
-  Use when testing AI-generated recommendations, raw config editing, and the AgentApp live session.
+  Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground)
+  of the Tendril production build test plan in the tendril-mac VM via cua-agent-app.
+  Use when testing AI-generated recommendations, raw config editing, and the
+  AgentApp live session.
 allowed-tools: Bash Read
 license: MIT
 metadata:
@@ -11,11 +13,13 @@ metadata:
 
 # test-recommendations-and-misc
 
-Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground) of the Tendril development branch test plan.
+Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground) of the Tendril production build test plan.
+
+**Execution model:** Drive the Tendril GUI in the `tendril-mac` VM via [`cua-agent-app`](../../cua-agent-app/). See [run-tendril-test-plans](../run-tendril-test-plans/SKILL.md).
 
 **Prerequisites:**
+- Tendril **production build** running in the VM
 - Multiple completed plans in Tendril (run Sections 5–6 first to generate history)
-- Tendril running on `development` branch
 
 ---
 
@@ -105,7 +109,7 @@ Run Sections 9 (Recommendations), 11 (Config Editor), and 12 (Agent Playground) 
 2. **Expected:**
    - Agent process terminates cleanly (no zombie process).
    - Session log is preserved and viewable after stopping.
-3. Verify: `ps aux | grep claude` (or the agent binary name) shows no orphaned process.
+3. Verify in the VM via SSH: `ps aux | grep claude` (or the agent binary name) shows no orphaned process.
 4. ✅ Pass if process is gone and log is readable.
 
 ---
