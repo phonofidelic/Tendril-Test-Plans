@@ -65,13 +65,16 @@ The script:
 
 - verifies the session is Xorg; if it finds Wayland it exits with the
   `gdm3` one-liner to disable Wayland and asks you to re-run after relogin,
-- installs apt dependencies (`python3-venv`, `python3-tk`, `gnome-screenshot`,
+- installs apt dependencies (`python3-venv`, `python3-tk`, `build-essential`
+  — the `evdev` dependency compiles a C extension — `gnome-screenshot`,
   `scrot`, `xdotool`, …) and checks Python is 3.12+,
 - creates a venv at `~/cua-server-env` with `cua-computer-server`,
 - opens TCP 8000 in ufw if ufw is active,
 - disables screen blanking and the lock screen for unattended runs,
 - registers an XDG autostart entry (`~/.config/autostart/`) so the server
-  starts with each graphical login,
+  starts with each graphical login — with a 15 s delay, because a server
+  launched too early caches an empty X keymap: mouse keeps working but every
+  keystroke is silently dropped until the server restarts,
 - starts it now and curls `http://localhost:8000/status`.
 
 Get the script into the guest via a UTM shared directory, `scp` from the
@@ -80,6 +83,11 @@ host (if the guest runs sshd), or paste it into a terminal editor. Then:
 ```bash
 bash provision-computer-server.sh
 ```
+
+Running it over ssh also works (`ssh user@guest 'bash -s' <
+provision-computer-server.sh`): with no inherited `DISPLAY` the script skips
+the X-dependent import check and starts the server against the console
+session (`DISPLAY=:0`, GDM's `Xauthority`).
 
 The server must run **inside the graphical session** (hence an autostart
 entry, not a systemd system service): a system service has no
@@ -152,6 +160,7 @@ VM is not.
 | `ConnectionRefusedError` to guest IP | computer-server not running, or ufw blocking 8000 | re-login or re-run the script; `sudo ufw status` (step 1) |
 | Connect hangs / times out | wrong IP (changed on reboot) or Emulated VLAN without port forward | re-check `hostname -I`; add port forward (step 2) |
 | Screenshot black/empty, input ignored | Wayland session, or server started without `DISPLAY` (system service) | switch to Xorg; use the autostart entry (step 1) |
+| Clicks work but typing/hotkeys do nothing | server started before the X keymap was ready (early autostart) | restart the server inside the session; keep the autostart `sleep 15` (step 1) |
 | Server log shows Xlib / "can't connect to display" | server launched outside the graphical session | start via the autostart entry, not ssh/systemd (step 1) |
 | `KeyError: 'width'` / `requested 'png' but got 'unknown'` | connected with `ws_url=` (legacy-protocol transport) | use `http_url=` / `CUA_HTTP_URL` (top of this skill) |
 | `No local sandbox named ... found` | used `Sandbox.connect(name, local=True)` | pass `http_url=` instead (top of this skill) |

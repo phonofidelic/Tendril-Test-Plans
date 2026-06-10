@@ -40,7 +40,7 @@ echo "    ${XDG_SESSION_TYPE:-unknown} (OK)"
 echo "==> Installing system dependencies (sudo)"
 sudo apt-get update -qq
 sudo apt-get install -y python3 python3-venv python3-dev python3-tk \
-    gnome-screenshot scrot xdotool curl
+    build-essential gnome-screenshot scrot xdotool curl
 
 echo "==> Checking Python"
 python3 - <<'EOF'
@@ -56,7 +56,13 @@ if [ ! -x "$VENV/bin/python" ]; then
 fi
 "$VENV/bin/python" -m pip install --upgrade pip
 "$VENV/bin/python" -m pip install --upgrade cua-computer-server
-"$VENV/bin/python" -c "import computer_server; print('    import OK')"
+# importing computer_server pulls in pynput, which needs an X connection —
+# skip the check when provisioning over ssh without DISPLAY
+if [ -n "${DISPLAY:-}" ]; then
+    "$VENV/bin/python" -c "import computer_server; print('    import OK')"
+else
+    echo "    installed (import check skipped: no DISPLAY)"
+fi
 
 echo "==> Allowing TCP $PORT through ufw (if active)"
 if sudo ufw status | grep -q '^Status: active'; then
@@ -71,18 +77,28 @@ gsettings set org.gnome.desktop.screensaver lock-enabled false || true
 
 echo "==> Registering autostart entry ($AUTOSTART)"
 mkdir -p "$(dirname "$AUTOSTART")"
+# The sleep matters: pynput's keyboard Controller caches the X keymap when
+# the server starts. Launched too early in session bring-up it caches an
+# empty keymap — mouse keeps working but all typing/hotkeys are silently
+# dropped until the server is restarted.
 cat > "$AUTOSTART" <<EOF
 [Desktop Entry]
 Type=Application
 Name=$APP_NAME
 Comment=trycua computer-server for cua Sandbox connections
-Exec=$VENV/bin/python -m computer_server --port $PORT
+Exec=sh -c "sleep 15; exec $VENV/bin/python -m computer_server --port $PORT"
 X-GNOME-Autostart-enabled=true
 EOF
 
 echo "==> Starting it now"
 mkdir -p "$(dirname "$LOG")"
-pkill -f "computer_server --port $PORT" 2>/dev/null || true
+# bracket pattern so pkill cannot match this script's own command line
+pkill -f "[c]omputer_server --port $PORT" 2>/dev/null || true
+# when provisioning over ssh, attach to the console X session explicitly
+if [ -z "${DISPLAY:-}" ]; then
+    export DISPLAY=:0
+    export XAUTHORITY="/run/user/$(id -u)/gdm/Xauthority"
+fi
 nohup "$VENV/bin/python" -m computer_server --port "$PORT" >"$LOG" 2>&1 &
 sleep 6
 
