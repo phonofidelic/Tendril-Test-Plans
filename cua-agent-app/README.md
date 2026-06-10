@@ -1,6 +1,6 @@
 # cua-agent-app
 
-A thin CLI over the [`cua`](https://pypi.org/project/cua/) Sandbox SDK for controlling the `tendril-mac` Lume VM. Any Cursor agent uses these commands as **eyes and hands** while following the [install-tendril-in-mac-vm](../skills/install-tendril-in-mac-vm/SKILL.md) skill runbook.
+A thin CLI over the [`cua`](https://pypi.org/project/cua/) Sandbox SDK for controlling the `tendril-mac` Lume VM — or any other VM running cua's `computer-server` (e.g. a Windows VM in UTM, see [Driving a UTM Windows VM](#driving-a-utm-windows-vm)). Any Cursor agent uses these commands as **eyes and hands** while following the [install-tendril-in-mac-vm](../skills/install-tendril-in-mac-vm/SKILL.md) skill runbook.
 
 Each subcommand connects to the VM and calls a single cua SDK method — `sb.screenshot()`, `sb.mouse.*`, `sb.keyboard.*`, or `sb.get_dimensions()`. The app defines **no input or coordinate primitives of its own**; the SDK owns those. See the [cua docs](https://cua.ai/docs/cua/guide/get-started/what-is-cua).
 
@@ -77,7 +77,62 @@ cua-agent-app/
 
 ## How it works
 
-1. `vm.py` loads `LUME_VM_NAME` from the repo-root `.env`.
-2. `Sandbox.create(Image.macos(), name=..., local=True)` attaches to the running Lume VM.
+1. `vm.py` loads `LUME_VM_NAME` (or `CUA_HTTP_URL`) from the repo-root `.env`.
+2. `Sandbox.create(Image.macos(), name=..., local=True)` attaches to the running Lume VM — or, when `CUA_HTTP_URL` is set, `Sandbox.connect(name, http_url=...)` connects directly to a `computer-server`.
 3. Each subcommand calls one cua SDK method — `sb.screenshot()`, `sb.mouse.*`, `sb.keyboard.*`, or `sb.get_dimensions()` — and nothing else.
 4. `sb.disconnect()` leaves the VM running.
+
+## Driving a UTM Windows VM
+
+The Lume runtime only exists to find the VM's IP and provision `computer-server` inside it. With a UTM Windows guest you do those two steps by hand once, then the exact same CLI commands work. The full runbook (including a guest provisioning script) lives in [connect-cua-utm-windows-vm](../skills/connect-cua-utm-windows-vm/SKILL.md); the short version follows.
+
+### 1. One-time setup inside the Windows guest
+
+- Install Python 3.12+ from [python.org](https://www.python.org/downloads/windows/) (check **Add python.exe to PATH** in the installer).
+- In PowerShell:
+
+  ```powershell
+  pip install cua-computer-server
+  python -m computer_server          # listens on port 8000, WebSocket at /ws
+  ```
+
+- Allow the port through Windows Defender Firewall when prompted (or pre-allow it):
+
+  ```powershell
+  netsh advfirewall firewall add rule name="cua computer-server" dir=in action=allow protocol=TCP localport=8000
+  ```
+
+- To make it start on login, put the `python -m computer_server` command in a Task Scheduler "At log on" task or a shortcut in `shell:startup`.
+
+### 2. UTM networking
+
+Use UTM's **Shared Network** mode (the default) so the guest gets an IP the Mac host can reach. Find it inside the guest with `ipconfig` (the IPv4 address, typically `192.168.64.x`).
+
+If the VM uses **Emulated VLAN** instead, add a port forward in UTM (guest 8000 → host 8000) and use `http://127.0.0.1:8000` below.
+
+### 3. Point the CLI at it
+
+In the repo-root `.env`:
+
+```bash
+CUA_HTTP_URL=http://192.168.64.X:8000
+CUA_VM_NAME=tendril-win   # optional, label only
+```
+
+Use the **HTTP base URL**, not `ws://...`: the SDK's `ws_url` WebSocket transport speaks an older computer-server protocol and fails with `KeyError: 'width'` (dimensions) and `requested 'png' but got 'unknown'` (screenshot) against current servers.
+
+Then every command works unchanged:
+
+```bash
+uv run main.py screenshot --out screenshots/win-00.png
+uv run main.py click --x 420 --y 310
+uv run main.py keypress --keys ctrl,c
+```
+
+Remove or comment out `CUA_HTTP_URL` to fall back to the Lume macOS VM.
+
+Notes:
+
+- Windows shortcuts use `ctrl`/`alt`/`win`, not `cmd` — e.g. `keypress --keys win,r` to open Run.
+- The guest IP can change across reboots under Shared Network; re-check with `ipconfig` if connections start failing.
+- `dimensions` reports the guest's native resolution; no Retina scaling applies on Windows guests, so screenshot pixels map 1:1 to click coordinates.
