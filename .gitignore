@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# uv
+.uv/
+
+# Local secrets (see .env.example)
+.env
+
+# Generated artifacts
+cua-agent-app/screenshots/*
+!cua-agent-app/screenshots/.gitkeep
+
+test-runs/*
+!test-runs/.gitkeep
+
+# Editor / OS
+.vscode/
+.DS_Store

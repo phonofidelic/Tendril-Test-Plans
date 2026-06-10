@@ -1,9 +1,25 @@
+---
+name: test-plan-execution
+description: >
+  Run Sections 4, 5, and 7 of the Tendril production build test plan in the
+  tendril-mac VM via cua-agent-app. Use when testing plan lifecycle management,
+  core execution, verification gates, timeout/error handling, cross-agent parity,
+  and jobs dashboard.
+allowed-tools: Bash Read
+license: MIT
+metadata:
+  effort: medium
+---
+
 # test-plan-execution
 
-Run Sections 4, 5, and 7 of the Tendril development branch test plan.
+Run Sections 4, 5, and 7 of the Tendril production build test plan.
+
+**Execution model:** Drive the Tendril GUI in the `tendril-mac` VM via [`cua-agent-app`](../../cua-agent-app/). Use VM SSH only for filesystem/git checks (worktrees, `plan.yaml`). See [run-tendril-test-plans](../run-tendril-test-plans/SKILL.md).
 
 **Prerequisites:**
-- repo-node, repo-go set up and added to Tendril
+- Tendril **production build** running in the VM
+- repo-node, repo-go set up on the host and added to Tendril Projects
 - At least one `Draft` plan created (see `test-plan-creation` skill)
 - Verifications configured for repo-node: build=`npm run build`, test=`npm test`, lint=`npm run lint`
 - Agent: **Claude Code / balanced** (primary); Codex and OpenCode for Section 5D
@@ -71,13 +87,13 @@ Run Sections 4, 5, and 7 of the Tendril development branch test plan.
    - `ExecutePlan` job is created and visible in `JobsApp`.
    - An isolated git worktree is created at branch `tendril/<planId>-<title>` inside the repo.
    - Agent runs against the worktree.
-3. Verify worktree branch name: `git -C <worktree-path> branch --show-current`
+3. Verify worktree branch name via VM SSH: `git -C <worktree-path> branch --show-current`
 4. ✅ Pass if branch name matches the pattern.
 
 ### 5A.2 — Worktree isolation
 
 1. While a plan is executing (5A.1 in progress):
-2. Make a change to `main` in repo-node (e.g., `git commit --allow-empty -m "test isolation"`).
+2. Make a change to `main` in repo-node on the host or in the VM clone (e.g., `git commit --allow-empty -m "test isolation"`).
 3. **Expected:** The agent's worktree is unaffected; `git log` in the worktree does not include the new commit.
 4. ✅ Pass if worktrees are isolated.
 
@@ -158,9 +174,9 @@ Run Sections 4, 5, and 7 of the Tendril development branch test plan.
 
 ### 5C.2 — Agent process crash
 
-1. Start ExecutePlan.
-2. Find the agent process PID (visible in JobsApp or via `ps aux | grep claude`).
-3. Kill it: `kill -9 <PID>`.
+1. Start ExecutePlan (via CUA in VM).
+2. Find the agent process PID in the VM (JobsApp UI, or SSH: `ps aux | grep claude`).
+3. Kill it in the VM: `kill -9 <PID>` (or use JobsApp **Stop** via CUA for 7.3 instead).
 4. **Expected:**
    - Job status becomes `Failed`.
    - Error surfaced in Jobs dashboard.

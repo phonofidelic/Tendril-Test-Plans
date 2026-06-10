@@ -1,3 +1,14 @@
+---
+name: setup-repo-mono
+description: >
+  Scaffold a minimal npm workspaces monorepo for use as repo-mono in Tendril test runs.
+  Use when preparing the multi-repo plan testing target (Sections 3B.2 and 6B.5).
+allowed-tools: Bash Read Write Edit
+license: MIT
+metadata:
+  effort: high
+---
+
 # setup-repo-mono
 
 Scaffold a minimal monorepo (two packages) for use as **repo-mono** in Tendril test runs.

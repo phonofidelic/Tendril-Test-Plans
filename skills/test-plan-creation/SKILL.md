@@ -1,9 +1,23 @@
+---
+name: test-plan-creation
+description: >
+  Run Section 3 (Plan Creation) of the Tendril production build test plan in the
+  tendril-mac VM via cua-agent-app. Use when testing plan creation, duplicate
+  detection, project inference, and multi-repo descriptions.
+allowed-tools: Bash Read
+license: MIT
+metadata:
+  effort: medium
+---
+
 # test-plan-creation
 
-Run Section 3 (Plan Creation) of the Tendril development branch test plan.
+Run Section 3 (Plan Creation) of the Tendril production build test plan.
+
+**Execution model:** Drive the Tendril GUI in the `tendril-mac` VM via [`cua-agent-app`](../../cua-agent-app/). See [run-tendril-test-plans](../run-tendril-test-plans/SKILL.md).
 
 **Prerequisites:**
-- Tendril running on `development` branch
+- Tendril **production build** running in the VM (Sections 1–2 complete)
 - repo-node and repo-python added to Settings → Projects
 - Verifications configured for repo-node (build/test/lint)
 

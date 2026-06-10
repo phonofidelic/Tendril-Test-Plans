@@ -1,3 +1,14 @@
+---
+name: setup-repo-dotnet
+description: >
+  Scaffold a minimal ASP.NET Core Web API repo for use as repo-dotnet in Tendril test runs.
+  Use when preparing the Tendril dogfooding repo (Tendril's own stack).
+allowed-tools: Bash Read Write Edit
+license: MIT
+metadata:
+  effort: high
+---
+
 # setup-repo-dotnet
 
 Scaffold a minimal ASP.NET Core Web API repo for use as **repo-dotnet** in Tendril test runs.

@@ -1,41 +1,60 @@
+---
+name: test-onboarding-and-settings
+description: >
+  Run Sections 1, 2, and 10 of the Tendril production build test plan in the
+  tendril-mac VM via cua-agent-app. Use when testing first-run onboarding,
+  coding agent settings, projects, verifications, tunnel, and regression checks.
+allowed-tools: Bash Read
+license: MIT
+metadata:
+  effort: medium
+---
+
 # test-onboarding-and-settings
 
-Run Sections 1, 2, and 10 of the Tendril development branch test plan.
+Run Sections 1, 2, and 10 of the Tendril production build test plan.
 
-**Prerequisite:** All six test repos created and pushed. Tendril binary built from `development` branch.
+**Execution model:** All Tendril GUI steps run inside the `tendril-mac` Lume VM via [`cua-agent-app`](../../cua-agent-app/) (screenshot → click/type). See [run-tendril-test-plans](../run-tendril-test-plans/SKILL.md) for the CUA contract, coordinate space, and VM prerequisites.
+
+**Prerequisites:**
+- Tendril **production build** installed in the VM (`/install-tendril-in-mac-vm`)
+- VM running with CUA connectivity (`/connect-cua-lume-macos-vm`)
+- All six test repos created and pushed on the host (`/setup-repo-*`); register GitHub URLs or VM-local paths in Tendril Projects
 
 ---
 
 ## Section 1 — First-Run & Onboarding
 
-### Setup
+### Setup (in the VM)
+
+To simulate a fresh install, launch Tendril from VM Terminal with an isolated home (type via `cua-agent-app`):
 
 ```bash
-# Clear Tendril state to simulate a fresh install
-rm -rf ~/.tendril/
-# Or use a custom home to avoid touching your real config:
-export TENDRIL_HOME=$(mktemp -d)
+export TENDRIL_HOME=$(mktemp -d -t tendril-test-home)
+open -a "Ivy Tendril"
 ```
+
+Or clear `~/.tendril/` in the VM before the first launch. Host-side `TENDRIL_HOME` does not affect the VM app.
 
 ### 1.1 — Fresh onboarding flow
 
-1. Launch the Tendril app.
+1. Launch Ivy Tendril in the VM (Spotlight or Dock via `cua-agent-app`).
 2. **Expected:** `OnboardingApp` loads; the wizard presents steps for agent selection, project setup, and API key entry.
 3. Walk through all wizard steps with valid values.
 4. ✅ Pass if each step advances and completes without error.
 
 ### 1.2 — Onboarding skips on subsequent launch
 
-1. Complete onboarding (1.1), then quit the app.
-2. Relaunch.
+1. Complete onboarding (1.1), then quit the app (`Cmd+Q` via `keypress`).
+2. Relaunch from Dock or Spotlight.
 3. **Expected:** App opens directly to `DashboardApp`; onboarding wizard is not shown.
 4. ✅ Pass if dashboard loads immediately.
 
 ### 1.3 — Config error surface
 
-1. Locate `$TENDRIL_HOME/config.yaml`.
+1. Locate `$TENDRIL_HOME/config.yaml` in the VM (SSH or VM Terminal).
 2. Corrupt it by inserting invalid YAML (e.g., `key: [unclosed`).
-3. Launch the app.
+3. Relaunch Ivy Tendril in the VM.
 4. **Expected:** `ConfigErrorApp` loads with a legible error message; no crash or blank screen.
 5. ✅ Pass if error message identifies the YAML parse failure.
 
@@ -174,8 +193,8 @@ Run these in sequence after Sections 1–2. Each maps to a known regression.
 
 ## Defect logging
 
-For any failure, add a row to the Defect Log in `development-branch-test-plan.md`:
+For any failure, add a row to the Defect Log in `tendril-test-plan.md`:
 
 ```
-| <N> | Section X | <ID> | <Agent> | <Repo> | <Description> | P1–P4 | <path/to/screenshot> |
+| <N> | Section X | <ID> | <Agent> | <Repo> | <Description> | P1–P4 | <cua-agent-app/screenshots/...> |
 ```

@@ -1,8 +1,24 @@
+---
+name: test-review-and-pr
+description: >
+  Run Section 6 (Review & PR Creation) and Section 8 (Dashboard & Statistics) of
+  the Tendril production build test plan in the tendril-mac VM via cua-agent-app.
+  Use when testing the review flow, PR creation rules (default, yolo, multi-repo,
+  draft), and dashboard accuracy.
+allowed-tools: Bash Read
+license: MIT
+metadata:
+  effort: medium
+---
+
 # test-review-and-pr
 
-Run Section 6 (Review & PR Creation) and Section 8 (Dashboard & Statistics) of the Tendril development branch test plan.
+Run Section 6 (Review & PR Creation) and Section 8 (Dashboard & Statistics) of the Tendril production build test plan.
+
+**Execution model:** Drive the Tendril GUI in the `tendril-mac` VM via [`cua-agent-app`](../../cua-agent-app/). Verify GitHub PRs in a browser (host or VM). See [run-tendril-test-plans](../run-tendril-test-plans/SKILL.md).
 
 **Prerequisites:**
+- Tendril **production build** running in the VM
 - At least one plan in `ReadyForReview` state (complete Section 5A first)
 - GitHub credentials configured in Tendril (repo-node and/or repo-go accessible)
 - For multi-repo tests: repo-mono or a plan spanning repo-node + repo-react
@@ -102,7 +118,7 @@ Run Section 6 (Review & PR Creation) and Section 8 (Dashboard & Statistics) of t
 ### 6B.7 — Worktree cleanup post-PR
 
 1. After `CreatePr` completes successfully.
-2. Check the filesystem: `ls $TENDRIL_HOME/worktrees/` (or equivalent).
+2. Check the VM filesystem via SSH: `ls $TENDRIL_HOME/worktrees/` (or equivalent).
 3. **Expected:** The worktree directories for the completed plan are removed.
 4. ✅ Pass if no stale worktree remains for the completed plan.
 
