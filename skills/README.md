@@ -60,7 +60,7 @@ Run these before the test plan on a fresh VM.
 |---|---|
 | `install-tendril-in-mac-vm` | Install Tendril on the `tendril-mac` Lume VM (GUI `.pkg` first, Terminal script fallback). |
 | `connect-cua-lume-macos-vm` | Connect a CUA Sandbox to the Lume VM and provision the in-VM `computer-server` on port 8443. |
-| `connect-cua-utm-windows-vm` | Connect a CUA Sandbox to a UTM Windows VM via `CUA_WS_URL` and provision the in-guest `computer-server` on port 8000. |
+| `connect-cua-utm-windows-vm` | Connect a CUA Sandbox to a UTM Windows VM via `CUA_HTTP_URL` and provision the in-guest `computer-server` on port 8000. |
 
 ---
 

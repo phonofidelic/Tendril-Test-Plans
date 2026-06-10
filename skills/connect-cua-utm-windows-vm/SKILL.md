@@ -3,10 +3,11 @@ name: connect-cua-utm-windows-vm
 description: >-
   Connect a cua (trycua) Sandbox to a Windows VM running under UTM on a macOS
   host, by provisioning cua's computer-server inside the guest and connecting
-  directly via ws_url (no Lume/runtime). Use when driving a UTM Windows guest
-  with cua-agent-app, when Sandbox.connect to ws://<guest-ip>:8000/ws fails
-  with ConnectionRefusedError or times out, or when clicks/screenshots
-  silently do nothing on a Windows guest.
+  directly via http_url (no Lume/runtime). Use when driving a UTM Windows
+  guest with cua-agent-app, when connecting to the guest fails with
+  ConnectionRefusedError, "KeyError: 'width'", or "requested 'png' but got
+  'unknown'", or when clicks/screenshots silently do nothing on a Windows
+  guest.
 license: MIT
 compatibility: >-
   Requires a macOS host with UTM, uv, and the cua-agent-app CLI, plus a
@@ -18,14 +19,14 @@ compatibility: >-
 
 UTM is not a cua runtime — there is no `Image.windows()` local path and no IP
 discovery. Instead, the cua SDK connects **directly** to a `computer-server`
-running inside the Windows guest, using a WebSocket URL:
+running inside the Windows guest, using its HTTP base URL:
 
 ```python
 import asyncio
 from cua import Sandbox
 
 async def main():
-    sb = await Sandbox.connect("tendril-win", ws_url="ws://192.168.64.X:8000/ws")
+    sb = await Sandbox.connect("tendril-win", http_url="http://192.168.64.X:8000")
     try:
         png = await sb.screenshot()
         open("screenshot.png", "wb").write(png)
@@ -35,16 +36,23 @@ async def main():
 asyncio.run(main())
 ```
 
-`cua-agent-app` already supports this: set `CUA_WS_URL` (and optionally
+`cua-agent-app` already supports this: set `CUA_HTTP_URL` (and optionally
 `CUA_VM_NAME`) in the repo-root `.env` and every CLI command works unchanged
 (step 3).
 
 Gotchas:
-- With `ws_url` set, `Sandbox.connect` uses a plain `WebSocketTransport` —
-  the `name` argument is only a label, and no image/runtime is involved.
+- Use `http_url=`, **not** `ws_url=`. The `ws_url` WebSocketTransport speaks
+  an older protocol: against a current computer-server, `get_dimensions()`
+  raises `KeyError: 'width'` and `screenshot()` raises
+  `ValueError: requested 'png' but got 'unknown' (magic bytes: )` — the
+  server replies `{"success": true, "image_data"/"size": ...}` while that
+  transport expects `{"result": ...}`. `HTTPTransport` (the same transport
+  the Lume runtime uses) parses the current schema.
+- With `http_url` set, the `name` argument is only a label; no image/runtime
+  is involved.
 - Do **not** use `Sandbox.create(Image.windows(), ..., local=True)`: the local
   Windows path targets Windows Sandbox on a Windows host, not UTM.
-- The URL path is `/ws`. `http://<ip>:8000/status` is the health endpoint.
+- `http://<ip>:8000/status` is the health endpoint.
 
 ## 1. Provision computer-server inside the Windows guest
 
@@ -78,7 +86,7 @@ screenshots come back black and input goes nowhere.
   start failing.
 - **Emulated VLAN**: the guest is NATed and not directly reachable. In the
   VM's UTM settings add a port forward (guest 8000 → host 8000) and use
-  `ws://127.0.0.1:8000/ws`.
+  `http://127.0.0.1:8000`.
 
 Verify from the macOS host before involving the SDK:
 
@@ -92,7 +100,7 @@ curl -s -m5 http://192.168.64.X:8000/status
 In the repo-root `.env` (gitignored; see `.env.example`):
 
 ```bash
-CUA_WS_URL=ws://192.168.64.X:8000/ws
+CUA_HTTP_URL=http://192.168.64.X:8000
 CUA_VM_NAME=tendril-win   # label only
 ```
 
@@ -105,7 +113,7 @@ uv run main.py click --x 420 --y 310
 uv run main.py keypress --keys win,r
 ```
 
-Remove or comment out `CUA_WS_URL` to fall back to the Lume macOS VM
+Remove or comment out `CUA_HTTP_URL` to fall back to the Lume macOS VM
 (`LUME_VM_NAME`, see [connect-cua-lume-macos-vm](../connect-cua-lume-macos-vm/SKILL.md)).
 
 Windows-specific input notes:
@@ -129,7 +137,8 @@ VM is not.
 |---|---|---|
 | `ConnectionRefusedError` to guest IP | computer-server not running, or firewall | re-run Scheduled Task; check firewall rule (step 1) |
 | Connect hangs / times out | wrong IP (changed on reboot) or Emulated VLAN without port forward | re-check `ipconfig`; add port forward (step 2) |
-| `No local sandbox named ... found` | used `Sandbox.connect(name, local=True)` | pass `ws_url=` instead (top of this skill) |
+| `KeyError: 'width'` / `requested 'png' but got 'unknown'` | connected with `ws_url=` (legacy-protocol transport) | use `http_url=` / `CUA_HTTP_URL` (top of this skill) |
+| `No local sandbox named ... found` | used `Sandbox.connect(name, local=True)` | pass `http_url=` instead (top of this skill) |
 | Screenshot is black / input ignored | server running in Session 0 (service) or lock screen active | use the logon Scheduled Task; keep user signed in (steps 1, 4) |
 | `keypress --keys cmd,...` does nothing | macOS key name on Windows guest | use `ctrl` / `alt` / `win` |
-| Works, then fails after guest reboot | Shared Network IP changed | update `CUA_WS_URL` in `.env` |
+| Works, then fails after guest reboot | Shared Network IP changed | update `CUA_HTTP_URL` in `.env` |

@@ -77,8 +77,8 @@ cua-agent-app/
 
 ## How it works
 
-1. `vm.py` loads `LUME_VM_NAME` (or `CUA_WS_URL`) from the repo-root `.env`.
-2. `Sandbox.create(Image.macos(), name=..., local=True)` attaches to the running Lume VM — or, when `CUA_WS_URL` is set, `Sandbox.connect(name, ws_url=...)` connects directly to a `computer-server`.
+1. `vm.py` loads `LUME_VM_NAME` (or `CUA_HTTP_URL`) from the repo-root `.env`.
+2. `Sandbox.create(Image.macos(), name=..., local=True)` attaches to the running Lume VM — or, when `CUA_HTTP_URL` is set, `Sandbox.connect(name, http_url=...)` connects directly to a `computer-server`.
 3. Each subcommand calls one cua SDK method — `sb.screenshot()`, `sb.mouse.*`, `sb.keyboard.*`, or `sb.get_dimensions()` — and nothing else.
 4. `sb.disconnect()` leaves the VM running.
 
@@ -108,16 +108,18 @@ The Lume runtime only exists to find the VM's IP and provision `computer-server`
 
 Use UTM's **Shared Network** mode (the default) so the guest gets an IP the Mac host can reach. Find it inside the guest with `ipconfig` (the IPv4 address, typically `192.168.64.x`).
 
-If the VM uses **Emulated VLAN** instead, add a port forward in UTM (guest 8000 → host 8000) and use `ws://127.0.0.1:8000/ws` below.
+If the VM uses **Emulated VLAN** instead, add a port forward in UTM (guest 8000 → host 8000) and use `http://127.0.0.1:8000` below.
 
 ### 3. Point the CLI at it
 
 In the repo-root `.env`:
 
 ```bash
-CUA_WS_URL=ws://192.168.64.X:8000/ws
+CUA_HTTP_URL=http://192.168.64.X:8000
 CUA_VM_NAME=tendril-win   # optional, label only
 ```
+
+Use the **HTTP base URL**, not `ws://...`: the SDK's `ws_url` WebSocket transport speaks an older computer-server protocol and fails with `KeyError: 'width'` (dimensions) and `requested 'png' but got 'unknown'` (screenshot) against current servers.
 
 Then every command works unchanged:
 
@@ -127,7 +129,7 @@ uv run main.py click --x 420 --y 310
 uv run main.py keypress --keys ctrl,c
 ```
 
-Remove or comment out `CUA_WS_URL` to fall back to the Lume macOS VM.
+Remove or comment out `CUA_HTTP_URL` to fall back to the Lume macOS VM.
 
 Notes:
 
