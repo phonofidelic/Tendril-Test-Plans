@@ -30,9 +30,24 @@ export PATH="$HOME/.local/bin:$PATH"
 uv --version
 
 echo "==> Creating venv + installing cua-computer-server"
-uv venv --python 3.12 "$VENV"
+# --allow-existing keeps the script idempotent: uv 0.11+ errors on an existing venv
+uv venv --python 3.12 --allow-existing "$VENV"
 uv pip install --python "$VENV/bin/python" cua-computer-server
-"$VENV/bin/python" -c "import computer_server, fastapi, uvicorn; print('import OK')"
+
+# Verify by output, not exit code: over SSH (no GUI context) the interpreter
+# prints "import OK" but then segfaults during pyobjc teardown, which would
+# abort the whole script under set -e.
+IMPORT_OUT="$("$VENV/bin/python" -c "import computer_server, fastapi, uvicorn; print('import OK')" 2>/dev/null || true)"
+case "$IMPORT_OUT" in
+  *"import OK"*) echo "import OK" ;;
+  *) echo "ERROR: cua-computer-server failed to import" >&2; exit 1 ;;
+esac
+
+echo "==> Disabling sleep (a sleeping UTM macOS guest drops its network and may never wake)"
+defaults -currentHost write com.apple.screensaver idleTime 0
+sudo -n pmset -a sleep 0 displaysleep 0 disksleep 0 2>/dev/null \
+  || echo "NOTE: could not run pmset non-interactively; run inside the guest:" \
+          "sudo pmset -a sleep 0 displaysleep 0 disksleep 0"
 
 echo "==> Writing LaunchAgent ($PLIST)"
 mkdir -p "$HOME/Library/LaunchAgents"
@@ -64,10 +79,14 @@ launchctl bootout "gui/$UID_NUM/com.trycua.computer_server" 2>/dev/null || true
 launchctl bootstrap "gui/$UID_NUM" "$PLIST"
 launchctl kickstart -k "gui/$UID_NUM/com.trycua.computer_server"
 
-sleep 6
 echo "==> Status:"
-curl -s -m5 "localhost:$PORT/status" || true
-echo
+STATUS=""
+for _ in $(seq 1 10); do
+  STATUS="$(curl -s -m5 "localhost:$PORT/status" || true)"
+  [ -n "$STATUS" ] && break
+  sleep 3
+done
+echo "${STATUS:-server did not respond on :$PORT within 30s}"
 echo "Done. If screenshots fail with 'could not create image from display':"
 echo "  1. In the VM GUI: System Settings > Privacy & Security >"
 echo "     Screen & System Audio Recording > enable python3.12"

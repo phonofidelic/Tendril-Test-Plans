@@ -82,10 +82,12 @@ ssh user@192.168.64.X 'bash -s' < skills/connect-cua-utm-macos-vm/scripts/provis
 
 ## 2. Screen Recording (TCC) — the key macOS blocker
 
-After provisioning, screenshots will fail with **"could not create image
-from display"** until the python interpreter is granted **Screen Recording**
-permission. This is identical to the Lume case and is NOT a code or port
-problem:
+After provisioning, screenshots will fail until the python interpreter is
+granted **Screen Recording** permission — as
+**"could not create image from display"** on older server versions, or as
+**`Command '['screencapture', '-x', ...]' returned non-zero exit status 1`**
+on current ones (the server shells out to `screencapture`). Either way it is
+NOT a code or port problem:
 
 - Granting requires the VM **GUI** (it cannot be done over SSH): in the
   guest, System Settings → Privacy & Security → Screen & System Audio
@@ -109,11 +111,17 @@ problem:
 ## 3. UTM networking — find the guest address
 
 - **Shared Network** (UTM default): the guest gets a host-reachable IP,
-  typically `192.168.64.x`. Inside the guest run
-  `ipconfig getifaddr en0`; from the host, recent UTM versions also support
-  `/Applications/UTM.app/Contents/MacOS/utmctl ip-address "<VM name>"`
-  (`utmctl` is not on PATH). This IP can change across reboots — re-check it
-  if connections start failing.
+  typically `192.168.64.x` — but each VM may get its **own bridge/subnet**
+  (observed: a macOS guest on `192.168.65.x` while other guests sat on
+  `192.168.64.x`). Inside the guest run `ipconfig getifaddr en0`; from the
+  host, read the shared-network DHCP leases (works even when
+  `utmctl ip-address` fails with "Operation not supported by the backend",
+  as it does for Apple Virtualization guests):
+  ```bash
+  cat /var/db/dhcpd_leases | tr -d '\t' | paste -sd' ' - | sed 's/}/}\n/g'
+  ```
+  Match by guest hostname / newest lease. The IP **and subnet** can change
+  across reboots — re-check if connections start failing.
 - **Emulated VLAN**: the guest is NATed and not directly reachable. In the
   VM's UTM settings add a port forward (guest 8000 → host 8000) and use
   `http://127.0.0.1:8000`.
@@ -148,19 +156,27 @@ Remove or comment out `CUA_HTTP_URL` to fall back to the Lume macOS VM
 
 macOS-specific input notes:
 - Shortcuts use `cmd` — e.g. `cmd,c`, `cmd,space` (Spotlight), `cmd,q` —
-  unlike the Windows (`win`) and Ubuntu (`super`) guests.
+  unlike the Windows (`win`) and Ubuntu (`super`) guests. Key names follow
+  the server's hotkey table: `esc`, not `escape`.
 - **Coordinate space (Retina/HiDPI):** mouse coordinates are in the guest's
-  **logical display space**, which on a HiDPI display is half the pixel size
-  that `dimensions` and saved PNGs report (the Lume VM: logical 1024×768 vs
-  2048×1536 pixels). Whether a UTM guest is HiDPI depends on the VM's UTM
-  Display settings ("Retina mode") and the guest resolution — calibrate
-  before trusting coordinates: right-click anywhere; the context menu's
-  top-left corner appears exactly at the coordinate you passed. Read the
-  logical size in the guest under System Settings → Displays, then measure
+  **logical display space**. With UTM's default (non-Retina) display this is
+  **1:1** with `dimensions` and screenshot pixels (verified: 1616×1010
+  everywhere); with Retina/HiDPI enabled in the VM's UTM Display settings
+  expect the Lume situation instead (logical 1024×768 vs 2048×1536 pixels —
+  divide by 2). Calibrate before trusting coordinates: right-click anywhere;
+  the context menu's top-left corner appears at the coordinate you passed
+  (x exact, y within ~30 px of menu-placement offset). If scaled, measure
   click targets as a **fraction** of the screenshot and multiply by the
-  logical size.
+  logical size from System Settings → Displays.
 
-## 5. Session must stay logged in and unlocked
+## 5. Session must stay logged in, unlocked — and the guest must never sleep
+
+**Sleep is fatal, not cosmetic.** When a UTM macOS guest sleeps, its vmnet
+bridge is torn down on the host (the guest's whole subnet disappears from
+`ifconfig`) and the guest may show a black screen and **never wake** —
+the only recovery is restarting the VM. The provisioning script disables
+the screen saver and tries `pmset -a sleep 0 displaysleep 0 disksleep 0`
+(needs sudo; run it manually in the guest if the script could not).
 
 Input and screenshots act on the guest's interactive desktop. If macOS is
 sitting at the login window or the screen is locked, the LaunchAgent isn't
@@ -169,9 +185,9 @@ runs, in the guest:
 
 - enable automatic login (System Settings → Users & Groups → Automatically
   log in as),
-- disable the screen saver and set Lock Screen → "Require password after…"
-  to Never,
-- set display sleep to Never (System Settings → Lock Screen / Energy).
+- set Lock Screen → "Require password after…" to Never,
+- confirm sleep is off: `pmset -g | grep -E " sleep|displaysleep"` should
+  show 0s.
 
 Closing the UTM display window is fine (the VM keeps running headless);
 stopping the VM is not.
@@ -182,10 +198,13 @@ stopping the VM is not.
 |---|---|---|
 | `ConnectionRefusedError` to guest IP | computer-server not running, or no GUI login (LaunchAgent not loaded) | log in to the guest GUI; re-run the script (steps 1, 5) |
 | Connect hangs / times out | wrong IP (changed on reboot) or Emulated VLAN without port forward | re-check `ipconfig getifaddr en0`; add port forward (step 3) |
-| `could not create image from display` | Screen Recording not granted, or server started before the grant | grant in GUI + kickstart the agent (step 2) |
+| `could not create image from display` / `screencapture -x ... exit status 1` | Screen Recording not granted, or server started before the grant | grant in GUI + kickstart the agent (step 2) |
 | `KeyError: 'width'` / `requested 'png' but got 'unknown'` | connected with `ws_url=` (legacy-protocol transport) | use `http_url=` / `CUA_HTTP_URL` (top of this skill) |
 | `No local sandbox named ... found` | used `Sandbox.connect(name, local=True)` | pass `http_url=` instead (top of this skill) |
 | Clicks land ~2× off / hit the wallpaper | pixel coordinates passed in a HiDPI guest | use logical coordinates; calibrate with the right-click trick (step 4) |
 | Screenshots OK but clicks/keys silently ignored | guest at login/lock screen; if unlocked, check Accessibility permission for `python3.12` (Privacy & Security → Accessibility) | unlock / auto-login (step 5); grant + kickstart (step 2) |
 | `keypress --keys win,...` / `super,...` does nothing | non-macOS key name on macOS guest | use `cmd` |
-| Works, then fails after guest reboot | Shared Network IP changed, or login window (no auto-login) | update `CUA_HTTP_URL` in `.env`; enable auto-login (step 5) |
+| `Unknown key in hotkey: escape` | full key name not in the server's hotkey table | use `esc` |
+| Works, then fails after guest reboot | Shared Network IP/subnet changed, or login window (no auto-login) | re-read `/var/db/dhcpd_leases`, update `CUA_HTTP_URL` (steps 3, 5) |
+| Guest unreachable, UTM window black, won't wake | guest slept; vmnet bridge torn down on host | restart the VM; disable sleep via `pmset` (step 5) |
+| `utmctl ip-address` → "Operation not supported by the backend" | Apple Virtualization backend lacks the guest-agent query | read `/var/db/dhcpd_leases` on the host (step 3) |
