@@ -10,7 +10,7 @@
 | **Host/Guest** | macOS host → <hypervisor> **<guest OS + version>** (<vm-name>, <guest-ip>) |
 | **Tendril launch** | <e.g. native app from /Applications, or `tendril` dotnet tool → `https://localhost:5010` in guest Firefox> |
 | **Test repo(s)** | <e.g. repo-node (`/home/ubuntu/repo-node`, Express/TS)> |
-| **Result** | <N> PASS, <N> FAIL, <N> SKIPPED, <N> BLOCKED |
+| **Result** | <N> PASS, <N> FAIL, <N> BLOCKED, <N> SKIPPED |
 
 ---
 

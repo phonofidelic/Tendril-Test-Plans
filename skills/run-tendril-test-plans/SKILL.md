@@ -12,7 +12,7 @@ compatibility: >-
   cua computer-server: tendril-mac under Lume (port 8443) or a UTM
   macOS/Ubuntu/Windows guest (port 8000, connected via CUA_HTTP_URL). Test
   skills drive the Tendril UI inside the guest using cua-agent-app primitives.
-allowed-tools: Bash Read
+allowed-tools: Bash Read Write
 ---
 
 # run-tendril-test-plans
@@ -183,10 +183,10 @@ Every test session produces exactly one run directory under [`test-runs/`](../..
 ### Run directory naming
 
 ```
-test-runs/<timestamp>_<test-plan-name>_<os-under-test>_<tendril-version>_<agent-and-model>/
+test-runs/<timestamp>__<test-plan-name>__<os-under-test>__<tendril-version>__<agent-and-model>/
 ```
 
-Fields are separated by `_`; use `-` (never `_`) inside a field. All lowercase except section IDs.
+Fields are separated by `__` (double underscore); within a field use `-`, never `__`. The `timestamp` field keeps a single `_` between its date and time — that never collides with the `__` separator, so splitting the name on `__` always yields exactly five fields. `agent-and-model` is one combined human-readable label (its internal hyphens are not parsed into sub-fields). All lowercase except section IDs.
 
 | Field | Format | Examples |
 |---|---|---|
@@ -199,7 +199,7 @@ Fields are separated by `_`; use `-` (never `_`) inside a field. All lowercase e
 Example:
 
 ```
-test-runs/2026-06-10_1915_section-2B_ubuntu-22.04-utm_tendril-1.0.51_claude-code-claude-fable-5/
+test-runs/2026-06-10_1915__section-2B__ubuntu-22.04-utm__tendril-1.0.51__claude-code-claude-fable-5/
 ```
 
 ### Run directory contents
@@ -210,10 +210,10 @@ test-runs/2026-06-10_1915_section-2B_ubuntu-22.04-utm_tendril-1.0.51_claude-code
 └── screenshots/         # required — all evidence screenshots from the run
 ```
 
-Create the directory skeleton at run start, before the first test case:
+Create the directory skeleton at run start, before the first test case. Anchor `RUN_DIR` to the repo root with an absolute path so the same variable resolves identically whether you are in the repo root or in `cua-agent-app/`:
 
 ```bash
-RUN_DIR="test-runs/$(date +%Y-%m-%d_%H%M)_<plan>_<os>_tendril-<version>_<agent>-<model>"
+RUN_DIR="$(git rev-parse --show-toplevel)/test-runs/$(date +%Y-%m-%d_%H%M)__<plan>__<os>__tendril-<version>__<agent>-<model>"
 mkdir -p "$RUN_DIR/screenshots"
 ```
 
@@ -228,20 +228,20 @@ Start from the template at [`templates/execution-log.md`](templates/execution-lo
 
 ### Screenshot naming
 
-All evidence screenshots go in `<run-dir>/screenshots/`, named:
+All evidence screenshots go in `<run-dir>/screenshots/`, named with the same `__` field separator as the run directory:
 
 ```
-<timestamp>_<section>_<short-description>.png
+<timestamp>__<section>__<short-description>.png
 ```
 
-- **timestamp** — `YYYY-MM-DD_HHMMSS` at capture time (`date +%Y-%m-%d_%H%M%S`); makes the directory listing chronological.
+- **timestamp** — `YYYY-MM-DD_HHMMSS` at capture time (`date +%Y-%m-%d_%H%M%S`); makes the directory listing chronological. As with the run directory, its single internal `_` never collides with the `__` separator.
 - **section** — the test-plan section/case ID the shot evidences (`2B.1`, `setup`, `onboarding`).
 - **short-description** — 2–5 hyphenated words (`add-project-dialog`, `projects-after-refresh`).
 
-Example: `2026-06-10_191530_2B.1_add-project-dialog.png`. Capture directly into the run directory:
+Example: `2026-06-10_191530__2B.1__add-project-dialog.png`. Capture directly into the run directory — `$RUN_DIR` is absolute (above), so this works unchanged from `cua-agent-app/`:
 
 ```bash
-uv run main.py screenshot --out "../$RUN_DIR/screenshots/$(date +%Y-%m-%d_%H%M%S)_2B.1_add-project-dialog.png"
+uv run main.py screenshot --out "$RUN_DIR/screenshots/$(date +%Y-%m-%d_%H%M%S)__2B.1__add-project-dialog.png"
 ```
 
 Scratch shots (coordinate probing, retries) may go in `cua-agent-app/screenshots/<timestamped-subdir>/`; copy any that become evidence into the run directory with a conforming name before writing the log.
