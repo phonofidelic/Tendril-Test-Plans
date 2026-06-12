@@ -21,3 +21,5 @@ test-runs/*
 # Editor / OS
 .vscode/
 .DS_Store
+
+.codex/
