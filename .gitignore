@@ -16,6 +16,7 @@ cua-agent-app/screenshots/*
 
 test-runs/*
 !test-runs/.gitkeep
+!test-runs/README.md
 
 # Editor / OS
 .vscode/
