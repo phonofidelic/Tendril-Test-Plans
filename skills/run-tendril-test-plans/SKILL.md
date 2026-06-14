@@ -21,7 +21,7 @@ This repo is a pure documentation/skills project — no server, no build step, n
 
 **Primary target:** Tendril **production build** (test across multiple released versions). Use a `development` branch build only when validating unreleased changes.
 
-**Test plan source of truth:** [`tendril-test-plan.md`](../../tendril-test-plan.md)
+**Test plan source of truth:** [`test-plans/tendril-test-plan.md`](../../test-plans/tendril-test-plan.md)
 
 ---
 
@@ -42,6 +42,7 @@ Expected output (all checks passing):
 
 ── Core documents
   ✓ skills/README.md
+  ✓ test-plans/tendril-test-plan.md
 
 ── Skill directories (spec compliance)
   ✓ connect-cua-lume-macos-vm/SKILL.md
@@ -172,7 +173,7 @@ open -a "Ivy Tendril"
 
 Without isolation, a prior test run's config in the VM will cause onboarding to be skipped in Section 1.
 
-Record the production version under test in `tendril-test-plan.md` header fields (`Production version(s)`, `Date`, `Tester`) **and** in the run's `execution-log.md` header (below).
+Record the production version under test in `test-plans/tendril-test-plan.md` header fields (`Production version(s)`, `Date`, `Tester`) **and** in the run's `execution-log.md` header (below).
 
 ---
 

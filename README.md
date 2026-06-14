@@ -12,7 +12,7 @@ All skills follow the [agentskills.io open specification](https://agentskills.io
 
 | Path | Purpose |
 |---|---|
-| `tendril-test-plan.md` | The source-of-truth manual test plan (sections 1–12, test matrix, exit criteria). Primarily used for **production builds across multiple versions**. |
+| `test-plans/` | Source-of-truth manual test plans. The current Tendril production build plan is [`test-plans/tendril-test-plan.md`](test-plans/tendril-test-plan.md) (sections 1–12, test matrix, exit criteria). |
 | `skills/` | The single canonical skills tree. One folder per skill, each with a spec-compliant `SKILL.md`. Includes the test, infrastructure, and orchestration skills below. See [`skills/README.md`](skills/README.md). |
 | `.agents/skills` → `skills/` | Symlink for cross-client skill discovery ([agentskills.io convention](https://agentskills.io/client-implementation/adding-skills-support)). |
 | `.cursor/skills` → `skills/` | Symlink so Cursor discovers the same tree. |
