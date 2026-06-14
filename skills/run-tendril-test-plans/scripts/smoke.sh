@@ -43,6 +43,11 @@ if [ -f "$SKILLS_DIR/README.md" ]; then
 else
   bad "skills/README.md" "missing"
 fi
+if [ -f "$REPO_ROOT/test-plans/tendril-test-plan.md" ]; then
+  ok "test-plans/tendril-test-plan.md"
+else
+  bad "test-plans/tendril-test-plan.md" "missing"
+fi
 echo ""
 
 echo "── Skill directories (spec compliance)"

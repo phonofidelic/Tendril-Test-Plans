@@ -1,6 +1,6 @@
 # Tendril Test Skills — Index
 
-Skills for executing the [production build test plan](../tendril-test-plan.md) inside the `tendril-mac` Lume VM via [`cua-agent-app`](../cua-agent-app/). Each skill is a focused runbook for an agent or human tester.
+Skills for executing the [production build test plan](../test-plans/tendril-test-plan.md) inside the `tendril-mac` Lume VM via [`cua-agent-app`](../cua-agent-app/). Each skill is a focused runbook for an agent or human tester.
 
 All skills follow the [agentskills.io specification](https://agentskills.io/specification): one directory per skill, each containing a `SKILL.md` with `name` and `description` frontmatter. Validate them with `bash run-tendril-test-plans/scripts/smoke.sh` (from the repo root: `bash skills/run-tendril-test-plans/scripts/smoke.sh`).
 
